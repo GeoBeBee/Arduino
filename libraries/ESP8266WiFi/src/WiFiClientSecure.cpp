@@ -629,11 +629,11 @@ extern "C" int __ax_get_file(const char *filename, uint8_t **buf)
 extern "C" void ax_get_file() __attribute__ ((weak, alias("__ax_get_file")));
 
 
-#ifdef DEBUG_TLS_MEM
+//#ifdef DEBUG_TLS_MEM
 #define DEBUG_TLS_MEM_PRINT(...) DEBUGV(__VA_ARGS__)
-#else
-#define DEBUG_TLS_MEM_PRINT(...)
-#endif
+//#else
+//#define DEBUG_TLS_MEM_PRINT(...)
+//#endif
 
 extern "C" void* ax_port_malloc(size_t size, const char* file, int line)
 {
@@ -676,3 +676,23 @@ extern "C" void __ax_wdt_feed()
     optimistic_yield(10000);
 }
 extern "C" void ax_wdt_feed() __attribute__ ((weak, alias("__ax_wdt_feed")));
+
+extern "C" void ax_printf_P(PGM_P formatP, ...) {
+    //int ret;
+    va_list arglist;
+    va_start(arglist, formatP);
+
+    size_t fmtLen = strlen_P(formatP);
+    char* format = new char[fmtLen + 1];
+    strcpy_P(format, formatP);
+
+    //ret = printf(format, arglist);
+    ets_vprintf(ets_putc, format, arglist);
+
+    delete[] format;
+
+    va_end(arglist);
+    //return ret;
+}
+
+extern "C" void ax_printf_P(PGM_P formatP, ...);

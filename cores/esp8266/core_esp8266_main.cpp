@@ -63,8 +63,8 @@ void initVariant() {
 extern void loop();
 extern void setup();
 
-void preloop_update_frequency() __attribute__((weak));
-void preloop_update_frequency() {
+extern "C" void preloop_update_frequency() __attribute__((weak));
+extern "C" void preloop_update_frequency() {
 #if defined(F_CPU) && (F_CPU == 160000000L)
     REG_SET_BIT(0x3ff00014, BIT(0));
     ets_update_cpu_frequency(160);
@@ -79,15 +79,19 @@ static os_event_t g_loop_queue[LOOP_QUEUE_SIZE];
 
 static uint32_t g_micros_at_task_start;
 
-extern "C" void esp_yield() {
+extern "C" void __esp_yield() {
     if (cont_can_yield(&g_cont)) {
         cont_yield(&g_cont);
     }
 }
 
-extern "C" void esp_schedule() {
+extern "C" void esp_yield(void) __attribute__ ((weak, alias("__esp_yield")));
+
+extern "C" void __esp_schedule() {
     ets_post(LOOP_TASK_PRIORITY, 0, 0);
 }
+
+extern "C" void esp_schedule(void) __attribute__ ((weak, alias("__esp_schedule")));
 
 extern "C" void __yield() {
     if (cont_can_yield(&g_cont)) {
@@ -101,7 +105,7 @@ extern "C" void __yield() {
 
 extern "C" void yield(void) __attribute__ ((weak, alias("__yield")));
 
-extern "C" void optimistic_yield(uint32_t interval_us) {
+extern "C" void __optimistic_yield(uint32_t interval_us) {
     if (cont_can_yield(&g_cont) &&
         (system_get_time() - g_micros_at_task_start) > interval_us)
     {
@@ -109,7 +113,9 @@ extern "C" void optimistic_yield(uint32_t interval_us) {
     }
 }
 
-static void loop_wrapper() {
+extern "C" void optimistic_yield(uint32_t interval_us) __attribute__ ((weak, alias("__optimistic_yield")));
+
+extern "C" void loop_wrapper() {
     static bool setup_done = false;
     preloop_update_frequency();
     if(!setup_done) {
@@ -124,13 +130,15 @@ static void loop_wrapper() {
     esp_schedule();
 }
 
-static void loop_task(os_event_t *events) {
+extern "C" void __loop_task(os_event_t *events) {
     g_micros_at_task_start = system_get_time();
     cont_run(&g_cont, &loop_wrapper);
     if (cont_check(&g_cont) != 0) {
         panic();
     }
 }
+
+extern "C" void loop_task(os_event_t *events) __attribute__ ((weak, alias("__loop_task")));
 
 static void do_global_ctors(void) {
     void (**p)(void) = &__init_array_end;

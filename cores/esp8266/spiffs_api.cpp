@@ -25,6 +25,9 @@
 
 using namespace fs;
 
+extern "C"  __attribute__((weak)) void esp_spiffs_lock(uint32_t* fs) {}
+extern "C"  __attribute__((weak)) void esp_spiffs_unlock(uint32_t* fs) {}
+
 FileImplPtr SPIFFSImpl::open(const char* path, OpenMode openMode, AccessMode accessMode)
 {
     if (!isSpiffsFilenameValid(path)) {

@@ -250,6 +250,8 @@ bool FS::rename(const String& pathFrom, const String& pathTo) {
     return rename(pathFrom.c_str(), pathTo.c_str());
 }
 
+bool FS::garbage() { _impl->garbage(); }
+
 
 static bool sflags(const char* mode, OpenMode& om, AccessMode& am) {
     switch (mode[0]) {

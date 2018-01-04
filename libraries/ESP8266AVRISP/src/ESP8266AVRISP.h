@@ -13,6 +13,7 @@ Original version:
 #define _ESP8266AVRISP_H
 
 #include <Arduino.h>
+#include <ESP8266WiFi.h>
 
 // uncomment if you use an n-mos to level-shift the reset line
 // #define AVRISP_ACTIVE_HIGH_RESET
@@ -42,6 +43,13 @@ typedef struct {
     int pagesize;
     int eepromsize;
     int flashsize;
+    void tostring(String& print)
+    {
+        print = String("") + devicecode + " " + revision + " " +
+            progtype + " " + parmode + " " + polling + " " + selftimed + " " +
+            lockbytes + " " + fusebytes + " " + flashpoll + " " + eeprompoll + " " +
+            pagesize + " " + eepromsize + " " + flashsize;
+    }
 } AVRISP_parameter_t;
 
 

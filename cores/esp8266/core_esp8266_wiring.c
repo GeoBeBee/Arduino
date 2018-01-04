@@ -39,7 +39,7 @@ void delay_end(void* arg) {
     esp_schedule();
 }
 
-void delay(unsigned long ms) {
+extern void __delay(unsigned long ms) {
     if(ms) {
         os_timer_setfn(&delay_timer, (os_timer_func_t*) &delay_end, 0);
         os_timer_arm(&delay_timer, ms, ONCE);
@@ -51,6 +51,9 @@ void delay(unsigned long ms) {
         os_timer_disarm(&delay_timer);
     }
 }
+
+extern void delay(unsigned long) __attribute__ ((weak, alias("__delay")));
+
 
 void micros_overflow_tick(void* arg) {
     uint32_t m = system_get_time();

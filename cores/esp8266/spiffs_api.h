@@ -165,6 +165,23 @@ public:
         return true;
     }
 
+    bool garbage()
+    {
+        Serial.println("CLEAN!");
+        u32_t total, used;
+
+        SPIFFS_info(&_fs, &total, &used);
+        Serial.print("used: ");
+        Serial.print(used);
+        Serial.print(" total: ");
+        Serial.println(total);
+
+        //for(int i=0; i<1000; i++)
+        //{
+            SPIFFS_gc_quick(&_fs, 0);
+        //}
+    }
+
 protected:
     friend class SPIFFSFileImpl;
     friend class SPIFFSDirImpl;

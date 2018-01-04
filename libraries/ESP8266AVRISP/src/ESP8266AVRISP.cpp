@@ -26,7 +26,7 @@ extern "C" {
 #define malloc      os_malloc
 #define free        os_free
 
-// #define AVRISP_DEBUG(fmt, ...)     os_printf("[AVRP] " fmt "\r\n", ##__VA_ARGS__ )
+//#define AVRISP_DEBUG(fmt, ...)     os_printf("[AVRP] " fmt "\r\n", ##__VA_ARGS__ )
 #define AVRISP_DEBUG(...)
 
 #define AVRISP_HWVER 2
@@ -124,7 +124,7 @@ inline void ESP8266AVRISP::_reject_incoming(void) {
 uint8_t ESP8266AVRISP::getch() {
     while (!_client.available()) yield();
     uint8_t b = (uint8_t)_client.read();
-    // AVRISP_DEBUG("< %02x", b);
+    AVRISP_DEBUG("< %02x", b);
     return b;
 }
 
@@ -147,9 +147,14 @@ void ESP8266AVRISP::empty_reply() {
     if (Sync_CRC_EOP == getch()) {
         _client.print((char)Resp_STK_INSYNC);
         _client.print((char)Resp_STK_OK);
+        AVRISP_DEBUG("<>2 %02x", Sync_CRC_EOP);
+        AVRISP_DEBUG("<>- %02x", Resp_STK_INSYNC);
+        AVRISP_DEBUG("<>- %02x", Resp_STK_OK);
+
     } else {
         error++;
         _client.print((char)Resp_STK_NOSYNC);
+        AVRISP_DEBUG("<>0 %02x", Resp_STK_NOSYNC);
     }
 }
 
@@ -159,10 +164,19 @@ void ESP8266AVRISP::breply(uint8_t b) {
         resp[0] = Resp_STK_INSYNC;
         resp[1] = b;
         resp[2] = Resp_STK_OK;
-        _client.write((const uint8_t *)resp, (size_t)3);
+        //_client.write((const uint8_t *)resp, (size_t)3);
+        _client.print((char)Resp_STK_INSYNC);
+        _client.print((char)b);
+        _client.print((char)Resp_STK_OK);
+
+        AVRISP_DEBUG("<>3 %02x", Sync_CRC_EOP);
+        AVRISP_DEBUG("<>- %02x", Resp_STK_INSYNC);
+        AVRISP_DEBUG("<>- %02x", b);
+        AVRISP_DEBUG("<>- %02x", Resp_STK_OK);
     } else {
         error++;
         _client.print((char)Resp_STK_NOSYNC);
+        AVRISP_DEBUG("<>0 %02x", Resp_STK_NOSYNC);
     }
 
 }
@@ -208,10 +222,14 @@ void ESP8266AVRISP::set_parameters() {
                     + buff[17] * 0x00010000
                     + buff[18] * 0x00000100
                     + buff[19];
+
+    String tmp = "";
+    param.tostring(tmp);
+    AVRISP_DEBUG("%s\r\n", tmp.c_str());
 }
 
 void ESP8266AVRISP::start_pmode() {
-    SPI.begin();
+    //SPI.begin();
     SPI.setFrequency(_spi_freq);
     SPI.setHwCs(false);
 
@@ -227,7 +245,7 @@ void ESP8266AVRISP::start_pmode() {
 }
 
 void ESP8266AVRISP::end_pmode() {
-    SPI.end();
+    //SPI.end();
     setReset(_reset_state);
     pmode = 0;
 }
@@ -281,6 +299,7 @@ void ESP8266AVRISP::write_flash(int length) {
 uint8_t ESP8266AVRISP::write_flash_pages(int length) {
     int x = 0;
     int page = addr_page(here);
+    AVRISP_DEBUG("size: %04x p: %04x\r\n",length, here);
     while (x < length) {
         yield();
         if (page != addr_page(here)) {
@@ -427,7 +446,7 @@ void ESP8266AVRISP::read_signature() {
 int ESP8266AVRISP::avrisp() {
     uint8_t data, low, high;
     uint8_t ch = getch();
-    // AVRISP_DEBUG("CMD 0x%02x", ch);
+    AVRISP_DEBUG("CMD 0x%02x", ch);
     switch (ch) {
     case Cmnd_STK_GET_SYNC:
         error = 0;
@@ -465,7 +484,7 @@ int ESP8266AVRISP::avrisp() {
     case Cmnd_STK_LOAD_ADDRESS:
         here = getch();
         here += 256 * getch();
-        // AVRISP_DEBUG("here=0x%04x", here);
+        AVRISP_DEBUG("here=0x%04x", here);
         empty_reply();
         break;
 

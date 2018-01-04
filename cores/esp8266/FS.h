@@ -122,6 +122,8 @@ public:
     bool rename(const char* pathFrom, const char* pathTo);
     bool rename(const String& pathFrom, const String& pathTo);
 
+    bool garbage();
+
 protected:
     FSImplPtr _impl;
 };
